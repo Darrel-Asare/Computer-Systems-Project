@@ -13,9 +13,6 @@ stopThreads = False
 useKeys = False
 key = None
 
-motor1 = l293d.motor(rc.Motor1A, rc.Motor1B, rc.Motor1E)
-motor2 = l293d.motor(rc.Motor2A, rc.Motor2B, rc.Motor2E)
-
 # use Raspberry Pi board pin numbers
 GPIO.setmode(GPIO.BOARD)
 
@@ -25,14 +22,10 @@ GPIO.setup(rc.pinTrigger, GPIO.OUT)
 GPIO.setup(rc.pinEcho, GPIO.IN)
 GPIO.setup(rc.sensor, GPIO.IN)
 
-# setup inputs
-GPIO.setup(rc.Motor1A, GPIO.OUT)
-GPIO.setup(rc.Motor1B, GPIO.OUT)
-GPIO.setup(rc.Motor1E, GPIO.OUT)
+# setup Motor pins
+motor1 = l293d.motor(rc.Motor1E, rc.Motor1A, rc.Motor1B)
+motor2 = l293d.motor(rc.Motor2E, rc.Motor2A, rc.Motor2B)
 
-GPIO.setup(rc.Motor2A, GPIO.OUT)
-GPIO.setup(rc.Motor2B, GPIO.OUT)
-GPIO.setup(rc.Motor2E, GPIO.OUT)
 
 
 def close():
@@ -140,15 +133,25 @@ def thread_motors():
         if key == "w":
             # move forward
             logging.info("Motors  : Moving forward")
+            motor1.clockwise()
+            motor2.clockwise()
         if key == "a":
             # move left
             logging.info("Motors  : Turn left")
+            motor1.anticlockwise()
+            motor2.clockwise()
         if key == "s":
             # move backward
             logging.info("Motors  : Moving backward")
         if key == "d":
             # move right
             logging.info("Motors  : Turn right")
+            motor1.clockwise()
+            motor2.anticlockwise()
+        if key == "space":
+            logging.info("Motors: Stop")
+            motor1.stop()
+            motor2.stop()
 
 
 def thread_keys():

@@ -1,16 +1,16 @@
 # set GPIO Pins
 pinTrigger = 7
-pinEcho = 11
-sensor = 21  # TODO: Change from BCM
+pinEcho = 19
+sensor = 14  # TODO: Change from BCM
 
 # motors
-Motor1A = 16
-Motor1B = 18
-Motor1E = 22
+Motor1A = 33
+Motor1B = 35
+Motor1E = 37
 
-Motor2A = 19
-Motor2B = 21
-Motor2E = 23
+Motor2A = 11
+Motor2B = 13
+Motor2E = 15
 
 # Counter variables
 sample = 10 # how many half revolutions to time
