@@ -143,6 +143,9 @@ def thread_motors():
         if key == "s":
             # move backward
             logging.info("Motors  : Moving backward")
+            logging.info("Motors: Stop")
+            motor1.anticlockwise()
+            motor2.anticlockwise()
         if key == "d":
             # move right
             logging.info("Motors  : Turn right")
