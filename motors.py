@@ -6,15 +6,12 @@ import pyrebase
 import json
 
 
-data = {}
-with open('google-services.json') as f:
-  data = json.load(f)
-  
 config = {
-  "apiKey": data["client"][0]["api_key"]["current_key"],
-  "authDomain": data["project_info"]["firebase_url"],
-  "storageBucket": data["project_info"]["storage_bucket"],
-  "serviceAccount": "./google-services.json"
+  "apiKey": "AIzaSyDj3I3vvKVbWEVqCAxpfxNqQaMcv7t94cU",
+  "authDomain": "mini-robot-rover.firebaseapp.com",
+  "databaseURL": "https://mini-robot-rover.firebaseio.com",
+  #"serviceAccount": "./google-services.json",
+  "storageBucket": "mini-robot-rover.appspot.com"
 }
 
 firebase = pyrebase.initialize_app(config)
@@ -31,18 +28,38 @@ Motor2A = 11
 Motor2B = 13
 Motor2E = 15
 
-
-def close(signal, frame):
-    print("\nTurning off motors controller...\n")
-    GPIO.cleanup() 
-    sys.exit(0)
-
+throttle = None
+direction = None
 
 def user_action_change_handler(action):
-	print(str(action))
+	event = action["event"]
+	data = action["data"]
+	path = action["path"]
+	
+	print("steam handler invoked: " % event)
+	print("Data is: "% data)
+	
+	print(type(data))
+	#throttle = data.get('throttle')
+	#direction = data.get('direction')
 
 
-db.child("user_action").child(user['idToken']).stream(user_action_handler)
+firebase_stream = db.child("rover_status/mini").stream(user_action_change_handler)
+data = db.child("rover_status/mini").get()
+
+
+def close(signal, frame):
+	if signal != 0:
+		try:
+			print("\nTurning off motors controller...\n")
+			firebase_stream.close()
+			GPIO.cleanup()
+		except (RuntimeError, Exception):
+			print("Failed to clean up")
+			sys.exit(0)
+
+	sys.exit(0)
+
 
 
 def forward():
@@ -67,7 +84,7 @@ def backward():
 	GPIO.output(Motor2B,GPIO.HIGH)
 	GPIO.output(Motor2E,GPIO.HIGH)
 	 
-	sleep(2)
+	sleep(0.2)
 
 
 def left():	
@@ -100,7 +117,7 @@ def stop():
 	GPIO.output(Motor2E,GPIO.LOW)
 
 
-def run():
+def init():
 	forward()
 	backward()
 	left()
@@ -123,10 +140,22 @@ GPIO.setup(Motor2E,GPIO.OUT)
 
 
 # create an infinte loop to keep the script running
+init()
 try:
     while True:
-        run()
+		if direction == "left":
+			left()
+		if direction == "right":
+			right()
+		if throttle == "forward":
+			forward()
+		if throttle == "reverse":
+			backward()
+		sleep(0.001)
+		
 except KeyboardInterrupt:
     print ("Quit")
-    GPIO.cleanup()
-
+    raise
+except Exception, e:
+	print(e)
+	sys.exit(0)
