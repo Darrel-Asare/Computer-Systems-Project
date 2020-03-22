@@ -4,12 +4,12 @@ import RPi.GPIO as GPIO
 import time
 import signal
 import sys
-import l293d.driver as l293d
+import l293d
 import logging
 import threading
 import rover_constants as rc
 
-stopThreads = False
+stopEvent = threading.Event()
 useKeys = False
 key = None
 
@@ -23,17 +23,23 @@ GPIO.setup(rc.pinEcho, GPIO.IN)
 GPIO.setup(rc.sensor, GPIO.IN)
 
 # setup Motor pins
-motor1 = l293d.motor(rc.Motor1E, rc.Motor1A, rc.Motor1B)
-motor2 = l293d.motor(rc.Motor2E, rc.Motor2A, rc.Motor2B)
+l293d.Config.pin_numbering = 'BOARD'
+cases = (([rc.Motor1E, rc.Motor1A, rc.Motor1B], True), ([rc.Motor2E, rc.Motor2A, rc.Motor2B]
+, True))
+motors = []
 
+for pins, force_selection in cases:
+    motors.append(l293d.DC(*pins,force_selection=force_selection))
+
+motor1 = motors[0]
+motor2 = motors[1]
 
 
 def close():
-    global stopThreads
-
     logging.info("\nMain    : Turning off sensors and motors...\n")
 
-    stopThreads = True
+    stopEvent.set()
+    sleep(1)
     GPIO.cleanup()
     l293d.cleanup()
     sys.exit(0)
@@ -66,18 +72,18 @@ def get_rpm():
         delta = end - start
         delta = delta / 60
         rpm = (rc.sample / delta) / 2
-        print(rpm)
+        logging.debug("rpm      : RPM = %d", rpm)
         count = 0
     else:
-        logging.info("rpm     : count is %d", count)
+        logging.debug("rpm     : count is %d", count)
 
 
 GPIO.add_event_detect(rc.sensor, GPIO.RISING, callback=get_rpm)
 
 
-def thread_ds():
+def thread_ds(stopEvent):
     logging.info("Distance: Started RPM sensor thread")
-    while not stopThreads:
+    while not stopEvent.wait(1):
         # set Trigger to HIGH
         GPIO.output(rc.pinTrigger, True)
         # set Trigger after 0.01ms to LOW
@@ -89,11 +95,11 @@ def thread_ds():
         stop_time = time.time()
 
         # save start time
-        while (0 == GPIO.input(rc.pinEcho)) and not stopThreads:
+        while (0 == GPIO.input(rc.pinEcho)) and not stopEvent.wait(1):
             start_time = time.time()
 
         # save time of arrival
-        while (1 == GPIO.input(rc.pinEcho)) and not stopThreads:
+        while (1 == GPIO.input(rc.pinEcho)) and not stopEvent.wait(1):
             stop_time = time.time()
 
         # time difference between start and arrival
@@ -101,14 +107,15 @@ def thread_ds():
         # multiply with the sonic speed (34300 cm/s)
         # and divide by 2, because there and back
         distance = (elapsed_time * 34300) / 2
-
-        logging.info("Distance: %.1f cm", distance)
+        
+        if distance < 30:
+            logging.info("Distance: %.1f cm", distance)
         time.sleep(0.1)
 
 
-def thread_rpm():
+def thread_rpm(stopEvent):
     logging.info("rpm     : Started RPM sensor thread")
-    while not stopThreads:
+    while not stopEvent.wait(1):
         time.sleep(0.1)
 
 
@@ -126,79 +133,90 @@ def initialize_motors():
         motor2.anticlockwise()
 
 
-def thread_motors():
+def thread_motors(stopEvent):
     logging.info("Motors  : Started motors thread")
     initialize_motors()
-    while not stopThreads:
-        if key == "w":
-            # move forward
-            logging.info("Motors  : Moving forward")
-            motor1.clockwise()
-            motor2.clockwise()
-        if key == "a":
-            # move left
-            logging.info("Motors  : Turn left")
-            motor1.anticlockwise()
-            motor2.clockwise()
-        if key == "s":
-            # move backward
-            logging.info("Motors  : Moving backward")
-            motor1.anticlockwise()
-            motor2.anticlockwise()
-        if key == "d":
-            # move right
-            logging.info("Motors  : Turn right")
-            motor1.clockwise()
-            motor2.anticlockwise()
-        if key == "space":
-            logging.info("Motors: Stop")
-            motor1.stop()
-            motor2.stop()
+    while not stopEvent.wait(1):
+        try:
+            if key == "w":
+                # move forward
+                logging.info("Motors  : Moving forward")
+                motor1.clockwise()
+                motor2.clockwise()
+            if key == "a":
+                # move left
+                logging.info("Motors  : Turn left")
+                motor1.anticlockwise()
+                motor2.clockwise()
+            if key == "s":
+                # move backward
+                logging.info("Motors  : Moving backward")
+                motor1.anticlockwise()
+                motor2.anticlockwise()
+            if key == "d":
+                # move right
+                logging.info("Motors  : Turn right")
+                motor1.clockwise()
+                motor2.anticlockwise()
+            if key == "space":
+                logging.info("Motors: Stop")
+                motor1.stop()
+                motor2.stop()
+        except Error:
+            logging.error("Motors  : Error encountered")
+            stopEvent.set()
+        except Exception:
+            loggering.error("Motors  : Exception found")
+            stopEvent.set()
 
 
-def thread_keys():
+def thread_keys(name, stopEvent):
     global key
-    while useKeys and not stopThreads:
+    while useKeys and not stopEvent.wait(1):
         key = input().lower()
+        print(key)
+        if key == "ESC":
+            break;
 
 
-def thread_start(name):
+def thread_start(name, stopEvent):
     logging.info("Thread '%s': starting", name)
     if name == "rpm":
-        thread_rpm()
+        thread_rpm(stopEvent)
     elif name == "ds":
-        thread_ds()
+        thread_ds(stopEvent)
     elif name == "motors":
-        thread_motors()
+        thread_motors(stopEvent)
 
     logging.info("Thread '%s': finishing", name)
 
 
 if __name__ == "__main__":
+    global stopEvent
     log_format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=log_format, level=logging.INFO, datefmt="%H:%M:%S")
 
     logging.info("Main    : Welcome to the RPM, Distance and Motor Rover")
-    logging.info('Main    : Number of arguments:', len(sys.argv), 'arguments.')
+    logging.info('Main    : Number of arguments: ', str(len(sys.argv)), 'arguments.')
     logging.info('Main    : Argument List:', str(sys.argv))
-    useKeys = (sys.argv[1] == "useKeys")
+    useKeys = len(sys.argv) > 1 and sys.argv[1] == "useKeys"
 
     if useKeys:
         logging.info("Main    : Use 'W A S D' (move) and '<Space Bar>' (stop) to control the rover!")
 
     threads = list()
-    rpmThread = threading.Thread(target=thread_rpm, args=("rpm",))
+    rpmThread = threading.Thread(target=thread_start, args=("rpm",stopEvent,))
     threads.append(rpmThread)
-    dsThread = threading.Thread(target=thread_ds, args=("ds",))
+    dsThread = threading.Thread(target=thread_start, args=("ds",stopEvent,))
     threads.append(dsThread)
-    motorThreads = threading.Thread(target=thread_motors, args=("motors",))
+    motorThreads = threading.Thread(target=thread_start, args=("motors",stopEvent,))
     threads.append(motorThreads)
     if useKeys:
-        threads.append(threading.Thread(target=thread_keys, args=("keys",)))
+        threads.append(threading.Thread(target=thread_keys, args=("keys",stopEvent,)))
 
     try:
         # start the threads
-        for index in range(4):
+        for index in range(3 + (1 if useKeys else 0)):
             threads[index].start()
 
         # join the threads
@@ -207,7 +225,9 @@ if __name__ == "__main__":
             thread.join()
             logging.info("Main    : thread %d done", index)
     except KeyboardInterrupt:
-        stopThreads = True
+        print(">>> Interrupted")
+        stopEvent.set()
+        l293d.cleanup()
         print(">>> Quit")
 
     # Done
