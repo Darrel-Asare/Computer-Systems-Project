@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "370093648365",
+    "firebase_url": "https://mini-robot-rover.firebaseio.com",
+    "project_id": "mini-robot-rover",
+    "storage_bucket": "mini-robot-rover.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370093648365:android:06cdf910344c1019859fe4",
+        "android_client_info": {
+          "package_name": "rc.rover"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "370093648365-618ogtcrpv2q3v7f2g1o1vkalmj3sb3i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDj3I3vvKVbWEVqCAxpfxNqQaMcv7t94cU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "370093648365-618ogtcrpv2q3v7f2g1o1vkalmj3sb3i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

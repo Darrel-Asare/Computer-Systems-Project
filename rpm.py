@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO
 import time
 
-sensor = 21 # define the GPIO pin our sensor is attached to
+sensor = 14 # define the GPIO pin our sensor is attached to
 
 GPIO.setmode(GPIO.BCM) # set GPIO numbering system to BCM
 GPIO.setup(sensor,GPIO.IN) # set our sensor pin to an input
@@ -14,9 +14,19 @@ count = 0
 start = 0
 end = 0
 
+def close(signal, frame):
+    print("\nTurning off ultrasonic distance detection...\n")
+    GPIO.cleanup() 
+    sys.exit(0)
+    
+    
+signal.signal(signal.SIGINT, close)
+
+
 def set_start():
     global start
     start = time.time()
+
 
 def set_end():
     global end

@@ -8,7 +8,7 @@ GPIO.setmode(GPIO.BOARD)
 
 # set GPIO Pins
 pinTrigger = 7
-pinEcho = 11
+pinEcho = 19
 
 def close(signal, frame):
     print("\nTurning off ultrasonic distance detection...\n")
@@ -47,3 +47,4 @@ while True:
 
     print ("Distance: %.1f cm" % distance)
     time.sleep(1)
+
