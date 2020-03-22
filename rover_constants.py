@@ -13,7 +13,15 @@ Motor2B = 13
 Motor2E = 15
 
 # Counter variables
-sample = 10 # how many half revolutions to time
-count = 0
-start = 0
-end = 0
+rpm_samples_to_collect = 10 # how many half revolutions to time
+rpm_sample_count = 0
+rpm_sample_start = 0
+rpm_sample_end = 0
+rpm = 0
+
+ds_sample_start = 0
+ds_sample_stop = 0
+distance = float('Inf')
+
+useKeys = False
+key = None
