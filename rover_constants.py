@@ -1,7 +1,7 @@
 # set GPIO Pins
 pinTrigger = 7
 pinEcho = 19
-sensor = 14  # TODO: Change from BCM
+sensor = 8
 
 # motors
 Motor1A = 33
