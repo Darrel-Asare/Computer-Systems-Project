@@ -89,7 +89,7 @@ def user_action_change_handler(action):
 
 # Motor controls
 def forward():
-	print "Going forwards"
+	print "\r>>Going forwards",
 	GPIO.output(Motor1A,GPIO.HIGH)
 	GPIO.output(Motor1B,GPIO.LOW)
 	GPIO.output(Motor1E,GPIO.HIGH)
@@ -101,7 +101,7 @@ def forward():
 	sleep(0.5)
 
 def backward():
-	print "Going backwards"
+	print "\r>>Going backwards",
 	GPIO.output(Motor1A,GPIO.LOW)
 	GPIO.output(Motor1B,GPIO.HIGH)
 	GPIO.output(Motor1E,GPIO.HIGH)
@@ -114,18 +114,20 @@ def backward():
 
 
 def left():	
-	print "Turn right once"
-	GPIO.output(Motor2A,GPIO.HIGH)
-	GPIO.output(Motor2B,GPIO.LOW)
+	print "\r>>Turn left once",
+	GPIO.output(Motor2A,GPIO.LOW)
+	GPIO.output(Motor2B,GPIO.HIGH)
 	GPIO.output(Motor2E,GPIO.HIGH)
 	
-	GPIO.output(Motor1A,GPIO.LOW)
-	GPIO.output(Motor1B,GPIO.HIGH)
-	GPIO.output
+	GPIO.output(Motor1A,GPIO.HIGH)
+	GPIO.output(Motor1B,GPIO.LOW)
+	GPIO.output(Motor1E,GPIO.HIGH)
+	
+	sleep(0.2)
 
 
 def right():
-	print "Turn right once"
+	print "\r>>Turn right once",
 	GPIO.output(Motor2A,GPIO.HIGH)
 	GPIO.output(Motor2B,GPIO.LOW)
 	GPIO.output(Motor2E,GPIO.HIGH)
@@ -138,7 +140,7 @@ def right():
 
 
 def stop():
-	print "Now stop"
+	print "\r>>Now stop",
 	GPIO.output(Motor1E,GPIO.LOW)
 	GPIO.output(Motor2E,GPIO.LOW)
 
