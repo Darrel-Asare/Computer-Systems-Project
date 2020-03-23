@@ -3,7 +3,6 @@ import sys
 import RPi.GPIO as GPIO
 from time import sleep
 import pyrebase
-import json
 
 
 Motors_Enabled = True
@@ -42,6 +41,8 @@ def close(signal, frame):
 		except:
 			print(sys.exc_info()[0])
 			print("Failed to clean up")
+	else:
+		print("Exit with signal=" + str(signal))
 
 	sys.exit(1)
 
