@@ -78,7 +78,7 @@ try:
         if distance <  50:
             print ("\rDistance: %.1f cm" % distance),
             sys.stdout.flush()
-            firebase_db.child("distance").set(distance)
+            firebase_db.child("rover_status/mini/distance").set(distance)
 
         time.sleep(1)
 	

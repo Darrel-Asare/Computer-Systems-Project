@@ -74,7 +74,7 @@ def get_rpm(c):
         rpm = (sample / delta) / 2 # converted to time for a full single rotation
         print ("\nRPM is: " + str(rpm))
         sys.stdout.flush()
-        firebase_db.child("rpm").set(rpm)
+        firebase_db.child("rover_status/mini/rpm").set(rpm)
         count = 0 # reset the count to 0
     else:
         print ("\r>>Count is %d" % count),
