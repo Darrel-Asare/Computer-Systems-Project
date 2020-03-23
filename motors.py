@@ -72,8 +72,10 @@ def user_action_change_handler(action):
 	print("Data is: '" + str(data) + "' path is: '" + path + "' and type is: " + str(type(data)))
 	
 	if isinstance(data, dict):
-		throttle = data.get('throttle')
-		direction = data.get('direction')
+		if data.has_key("throttle"):
+			throttle = data.get('throttle')
+		if data.has_key("direction"):
+			direction = data.get('direction')
 	elif isinstance(data, (str, int, unicode)):
 		if path == "/throttle":
 			throttle = data
@@ -84,7 +86,15 @@ def user_action_change_handler(action):
 	else:
 		print("Unsupported event type: " + event)
 
-	print(">> Throttle = " + throttle + ", Direction = " + direction)
+	# display current throttle and direction
+	if throttle is not None:
+		print(">> Throttle = " + throttle),
+	if direction is not None:
+		if throttle is not None:
+			print(","),
+		else:
+			print(">>")
+		print("Direction = " + direction)
 
 
 # Motor controls
